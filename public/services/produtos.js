@@ -22,8 +22,6 @@ function debounce(fn, wait = 250) {
 // ================= CONEXÃO COM API =================
 async function initializeAPI() {
   try {
-    console.log('🚀 Conectando à API...', `${API_URL}/products`);
-
     const response = await fetch(`${API_URL}/products`);
 
     if (!response.ok) {
@@ -34,7 +32,6 @@ async function initializeAPI() {
     const json = await response.json();
     allProducts = Array.isArray(json) ? json : (json.products || []);
 
-    console.log('✅ Produtos carregados:', allProducts);
 
     if (allProducts.length === 0) {
       console.warn('⚠️ Nenhum produto encontrado na API');
