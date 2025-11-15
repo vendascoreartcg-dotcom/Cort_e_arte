@@ -286,17 +286,78 @@ async function initializeAPI() {
 
       modal.show();
     }
-    // ================= WHATSAPP =================
-    const btnSolicitar = document.getElementById('btnSolicitar');
-    if (btnSolicitar) {
-      btnSolicitar.addEventListener('click', () => {
-        const productName = currentProduct.title || 'Produto';
-        const total = totalPriceSpan.textContent;
-        const quantity = quantityInput.value;
 
-        const msg = `Olá! Gostaria de solicitar o orçamento do produto *${productName}*.\nQuantidade: ${quantity}\nTotal estimado: ${total}`;
-        const whatsappURL = `https://wa.me/558398874651?text=${encodeURIComponent(msg)}`;
-
-        window.open(whatsappURL, '_blank');
-      });
+    // ================= FUNÇÃO DE CÁLCULO DO TOTAL =================
+    function updateTotalPrice() {
+      const quantityInput = document.getElementById('quantityInput');
+      const paymentMethod = document.getElementById('paymentMethod');
+      const totalPriceSpan = document.getElementById('totalPrice');
+    
+      if (!quantityInput || !paymentMethod || !totalPriceSpan) return;
+    
+      let quantity = parseInt(quantityInput.value) || 1;
+    
+      // 🔒 Limite máximo
+      if (quantity > 10) {
+        quantity = 10;
+        quantityInput.value = 10;
+      }
+    
+      let unitPrice = parseFloat(currentProduct.price);
+      let total = quantity * unitPrice;
+    
+      // 🔹 Acréscimos por método de pagamento
+      switch (paymentMethod.value) {
+        case "pix":
+          break;
+        case "card2":
+          total *= 1.05; // +5% em 2x
+          break;
+        case "card3":
+          total *= 1.10; // +10% em 3x
+          break;
+      }
+    
+      totalPriceSpan.textContent = `R$ ${total.toFixed(2).replace('.', ',')}`;
     }
+    
+    // ================= FUNÇÃO DO BOTÃO WHATSAPP =================
+    function enviarParaWhatsapp() {
+      const quantityInput = document.getElementById('quantityInput');
+      const totalPriceSpan = document.getElementById('totalPrice');
+    
+      const productName = currentProduct.title || 'Produto';
+      const total = totalPriceSpan.textContent || "R$ 0,00";
+      const quantity = quantityInput.value || 1;
+    
+      const msg = 
+        `Olá! Gostaria de solicitar o orçamento do produto *${productName}*.\n` +
+        `Quantidade: ${quantity}\n` +
+        `Total estimado: ${total}`;
+    
+      const whatsappURL = `https://wa.me/558398874651?text=${encodeURIComponent(msg)}`;
+    
+      window.open(whatsappURL, '_blank');
+    }
+    
+    // ================= INICIALIZAÇÃO FINAL DO SCRIPT =================
+    document.addEventListener('DOMContentLoaded', () => {
+      initializeAPI(); // Carrega os produtos da API
+    
+      const quantityInput = document.getElementById('quantityInput');
+      const paymentMethod = document.getElementById('paymentMethod');
+      const btnSolicitar = document.getElementById('btnSolicitar');
+    
+      if (quantityInput) {
+        quantityInput.addEventListener('input', updateTotalPrice);
+      }
+    
+      if (paymentMethod) {
+        paymentMethod.addEventListener('change', updateTotalPrice);
+      }
+    
+      if (btnSolicitar) {
+        btnSolicitar.addEventListener('click', enviarParaWhatsapp);
+      }
+    });
+
